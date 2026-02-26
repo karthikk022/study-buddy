@@ -7,17 +7,32 @@ export default async function handler(req, res) {
   try {
     const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
 
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': process.env.VITE_ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01'
-      },
-      body: JSON.stringify(body)
-    });
+    // Convert messages to Gemini format
+    const contents = body.messages.map(msg => ({
+      role: msg.role === 'assistant' ? 'model' : 'user',
+      parts: [{ text: msg.content }]
+    }));
+
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          system_instruction: { parts: [{ text: body.system }] },
+          contents: contents
+        })
+      }
+    );
+
     const data = await response.json();
-    res.status(200).json(data);
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "Sorry, I couldn't get a response!";
+
+    // Return in same format as Anthropic so App.jsx works unchanged
+    res.status(200).json({
+      content: [{ text }]
+    });
+
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
