@@ -88,7 +88,7 @@ export default function StudyBuddy() {
         ? SYSTEM_PROMPTS.lifeskills + `\n\nThe user is asking about: ${activeSubject}. Focus your advice on that area.`
         : SYSTEM_PROMPTS.school + (activeSubject !== "All Subjects" ? `\n\nFocus on: ${activeSubject}.` : "");
 
-      const response = await fetch("https://api.anthropic.com/v1/messages", {
+      const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
