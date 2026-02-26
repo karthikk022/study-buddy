@@ -7,7 +7,6 @@ export default async function handler(req, res) {
   try {
     const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
 
-    // Convert messages to Gemini format
     const contents = body.messages.map(msg => ({
       role: msg.role === 'assistant' ? 'model' : 'user',
       parts: [{ text: msg.content }]
@@ -26,14 +25,18 @@ export default async function handler(req, res) {
     );
 
     const data = await response.json();
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "Sorry, I couldn't get a response!";
+    console.log('Gemini response:', JSON.stringify(data));
 
-    // Return in same format as Anthropic so App.jsx works unchanged
-    res.status(200).json({
-      content: [{ text }]
-    });
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+    if (!text) {
+      return res.status(200).json({ content: [{ text: JSON.stringify(data) }] });
+    }
+
+    res.status(200).json({ content: [{ text }] });
 
   } catch (error) {
+    console.error('Error:', error.message);
     res.status(500).json({ error: error.message });
   }
 }
