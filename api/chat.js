@@ -14,7 +14,7 @@ export default async function handler(req, res) {
         'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
       },
       body: JSON.stringify({
-        model: 'qwen/qwen3-8b:free',
+        model: 'openrouter/free',
         messages: [
           { role: 'system', content: body.system },
           ...body.messages
